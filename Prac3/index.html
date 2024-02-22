@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página Personal</title>
+    <link rel="stylesheet" href="class.css">
+</head>
+<body>
+    <header>
+        <h1>Guess the flag!</h1> 
+        <p>This page is in English because of the Api.</p>
+    </header>
+
+    <div id="flag"></div>
+    <div id="question"></div>
+    <div id="options"></div>
+    <div id="score"></div>
+    <div id="highscore"></div>
+
+    <script>
+        let score = 0;
+        let highscore = localStorage.getItem('highscore') || 0;
+    
+        document.getElementById('highscore').innerText = "High Score: " + highscore;
+    
+        function newQuestion() {
+            // Clear previous options
+            document.getElementById('options').innerHTML = '';
+    
+            // Fetch flag data from API
+            fetch('https://restcountries.com/v3.1/all?fields=name,flags')
+                .then(response => response.json())
+                .then(data => {
+                    let correctAnswer = data[Math.floor(Math.random() * data.length)];
+                    let options = [correctAnswer];
+                    while (options.length < 4) {
+                        let option = data[Math.floor(Math.random() * data.length)];
+                        if (!options.includes(option)) {
+                            options.push(option);
+                        }
+                    }
+                    options.sort(() => Math.random() - 0.5);
+    
+                    document.getElementById('question').innerText = "\n \n Which country does this flag belong to?";
+                    document.getElementById('flag').innerHTML = `<img src="${correctAnswer.flags.png}" />`;
+
+                    options.forEach(option => {
+                        let button = document.createElement('button');
+                        button.innerText = option.name.common;
+                        button.onclick = function() {
+                            if (option === correctAnswer) {
+                                score++;
+                                document.getElementById('score').innerText = "Score: " + score;
+                                if (score > highscore) {
+                                    highscore = score;
+                                    localStorage.setItem('highscore', highscore);
+                                    document.getElementById('highscore').innerText = "High Score: " + highscore;
+                                }
+                            } else {
+                                score = 0;
+                                document.getElementById('score').innerText = "Score: " + score;
+                            }
+                            newQuestion();
+                        };
+                        document.getElementById('options').appendChild(button);
+                    });
+                });
+        }
+        newQuestion();
+    </script>
+    
+    <footer>
+        <p>&copy; Santiago Arenas, Programación de Aplicaciones Telemáticas, 2024. </p>
+    </footer>
+</body>
+</html>
